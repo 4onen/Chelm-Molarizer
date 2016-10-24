@@ -6,6 +6,7 @@ import String
 import Regex
 
 import PeriodicTable
+import MoleculeParser
 import Chelm
 import SI
 
@@ -76,7 +77,11 @@ computeCommand model =
         (model.inputNum++model.inputUnits, toString PeriodicTable.periodicTable)
     else if Regex.contains (Regex.regex "\\d+.?\\d*") model.inputNum then
         if model.inputSecondNum /= "" then
-            (model.inputNum ++ model.inputUnits ++ " of " ++ model.inputSecondNum ++ model.inputSecondUnits
+            (model.inputNum ++ model.inputUnits ++ " of " ++ model.inputSecondNum ++ model.inputSecondUnits ++ (viewGetOpposingUnitML (String.right 1 model.inputUnits))
+            , toString(chemistry model.inputNum model.inputUnits model.inputSecondNum model.inputSecondUnits)
+            )
+        else if model.inputSecondUnits /= "" then
+            (model.inputNum ++ model.inputUnits ++ " of " ++ model.inputSecondUnits
             , toString(chemistry model.inputNum model.inputUnits model.inputSecondNum model.inputSecondUnits)
             )
         else
@@ -118,15 +123,22 @@ viewSecondNumBox units =
     let
         unit = String.right 1 units
     in
-        if unit == "L" then
-            displaySecondNumBox "M"
-        else if unit == "M" then
-            displaySecondNumBox "L"
+        if unit == "L" || unit == "M" then
+            displaySecondNumBox (viewGetOpposingUnitML unit)
         else if unit == "g" then
             displayMoleculeBox
         else
             []
-            
+
+viewGetOpposingUnitML : String -> String
+viewGetOpposingUnitML firstUnit =
+    if firstUnit == "L" then
+        "M"
+    else if firstUnit == "M" then
+        "L"
+    else
+        "(!UnitError!)"
+
 displaySecondNumBox : String -> List (Html Msg)
 displaySecondNumBox requiredUnit = 
     [ Html.text " of "
@@ -182,9 +194,36 @@ chemistry inputNum inputUnits inputSecondNum inputSecondUnits =
                 Result.Err error ->
                     Result.Err error
         else
-            Result.Err "Molecular masses unimplemented."
+            case num of
+                Result.Ok val ->
+                    let
+                        moleculeDecode = MoleculeParser.parseMolecule inputSecondUnits
+                    in
+                        case moleculeDecode of
+                            Result.Ok molecule ->
+                                case chemistryGramsMoleculeToMols (val*unitMultiple) molecule of
+                                    Result.Ok outputMols ->
+                                        Result.Ok (Chelm.Mols outputMols)
+                                    Result.Err error ->
+                                        Result.Err error
+                            Result.Err error ->
+                                Result.Err error
+                Result.Err error ->
+                    Result.Err error
+
 
 chemistryLiterMolalToMols : Float -> Float -> Float
 chemistryLiterMolalToMols liters molals =
     liters * molals
-        
+
+chemistryGramsMoleculeToMols : Float -> List String -> Result String Float
+chemistryGramsMoleculeToMols grams molecule =
+    let
+        masses = List.map PeriodicTable.getAtomicMassBySymbol molecule
+        molarMass = List.foldr (Result.map2 (+)) (Result.Ok 0) masses
+    in
+        case molarMass of
+            Result.Ok mass ->
+                Result.Ok (grams/mass)
+            Result.Err error ->
+                Result.Err error

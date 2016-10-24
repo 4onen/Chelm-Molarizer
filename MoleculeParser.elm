@@ -1,4 +1,4 @@
-module MoleculeParser exposing (..)
+module MoleculeParser exposing (parseMolecule, moleculeRegex)
 
 
 import String

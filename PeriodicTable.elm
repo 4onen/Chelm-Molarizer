@@ -1,4 +1,4 @@
-module PeriodicTable exposing (Element, PeriodicTable, periodicTable)
+module PeriodicTable exposing (Element, getElementBySymbol, getAtomicMassBySymbol, periodicTable)
 
 import Json.Decode exposing ((:=))
 
@@ -22,6 +22,34 @@ getElementList =
             []
         Result.Ok elements ->
             elements
+
+getElementBySymbol : String -> Result String Element
+getElementBySymbol symbol =
+    let
+        matchingElements = List.filter (\n -> n.symbol == symbol) periodicTable
+    in
+        if List.isEmpty matchingElements then
+            Result.Err ("No element found for symbol "++symbol)
+        else if (List.length matchingElements)>1 then
+            Result.Err ("More than one element found for symbol "++symbol)
+        else
+            case List.head matchingElements of
+                Maybe.Nothing ->
+                    Result.Err ("Mathematically impossible list created for symbol "++symbol)
+                Maybe.Just val ->
+                    Result.Ok val
+
+
+getAtomicMassBySymbol : String -> Result String Float
+getAtomicMassBySymbol symbol =
+    let 
+        elementGet = getElementBySymbol symbol
+    in
+        case elementGet of
+            Result.Ok element ->
+                Result.Ok element.atomic_mass
+            Result.Err error ->
+                Result.Err error
         
 
 decodeElements : List (String, Json.Decode.Value) -> List Element
