@@ -8198,14 +8198,27 @@ var _user$project$Chelm$extractQuant = function (word) {
 		return _elm_lang$core$Result$Err('No number match found!');
 	}
 };
+var _user$project$Chelm$siRegString = '[A-z]{0,2}';
 var _user$project$Chelm$numberRegString = '\\d+\\.?\\d*';
 var _user$project$Chelm$numberRegex = _elm_lang$core$Regex$regex(_user$project$Chelm$numberRegString);
 var _user$project$Chelm$gramRegex = _elm_lang$core$Regex$regex(
-	A2(_elm_lang$core$Basics_ops['++'], _user$project$Chelm$numberRegString, '[Mkmnpf]?g'));
+	A2(
+		_elm_lang$core$Basics_ops['++'],
+		_user$project$Chelm$numberRegString,
+		A2(_elm_lang$core$Basics_ops['++'], _user$project$Chelm$siRegString, 'g')));
 var _user$project$Chelm$literRegex = _elm_lang$core$Regex$regex(
-	A2(_elm_lang$core$Basics_ops['++'], _user$project$Chelm$numberRegString, '[Mkmnpf]?L'));
+	A2(
+		_elm_lang$core$Basics_ops['++'],
+		_user$project$Chelm$numberRegString,
+		A2(_elm_lang$core$Basics_ops['++'], _user$project$Chelm$siRegString, 'L')));
 var _user$project$Chelm$molarityRegex = _elm_lang$core$Regex$regex(
-	A2(_elm_lang$core$Basics_ops['++'], _user$project$Chelm$numberRegString, '[Mkmnpf]?M'));
+	A2(
+		_elm_lang$core$Basics_ops['++'],
+		_user$project$Chelm$numberRegString,
+		A2(_elm_lang$core$Basics_ops['++'], _user$project$Chelm$siRegString, 'M')));
+var _user$project$Chelm$Mols = function (a) {
+	return {ctor: 'Mols', _0: a};
+};
 var _user$project$Chelm$Molarity = function (a) {
 	return {ctor: 'Molarity', _0: a};
 };
@@ -8245,17 +8258,64 @@ var _user$project$Chelm$decodeGrams = function (word) {
 var _user$project$Chelm$decodeQuantity = function (word) {
 	return A2(_elm_lang$core$Regex$contains, _user$project$Chelm$gramRegex, word) ? _user$project$Chelm$decodeGrams(word) : (A2(_elm_lang$core$Regex$contains, _user$project$Chelm$literRegex, word) ? _user$project$Chelm$decodeLiters(word) : (A2(_elm_lang$core$Regex$contains, _user$project$Chelm$molarityRegex, word) ? _user$project$Chelm$decodeMolals(word) : _elm_lang$core$Result$Err('Invalid Quantity -- No SI unit found.')));
 };
-var _user$project$Main$chemistry = function (input) {
-	var word = A2(
-		_elm_lang$core$Maybe$withDefault,
-		'A horrid failure',
-		_elm_lang$core$List$head(
-			A2(_elm_lang$core$String$split, ' ', input)));
-	return _elm_lang$core$Basics$toString(
-		_user$project$Chelm$decodeQuantity(word));
-};
-var _user$project$Main$viewPastCommand = function (_p0) {
-	var _p1 = _p0;
+var _user$project$Main$chemistryLiterMolalToMols = F2(
+	function (liters, molals) {
+		return liters * molals;
+	});
+var _user$project$Main$chemistry = F4(
+	function (inputNum, inputUnits, inputSecondNum, inputSecondUnits) {
+		var unitType = A2(_elm_lang$core$String$right, 1, inputUnits);
+		var unitMultiple = _user$project$SI$multiplierFromSI(
+			A2(
+				_elm_lang$core$Result$withDefault,
+				_user$project$SI$UnitUnit,
+				_user$project$SI$extractSIUnit(
+					A2(_elm_lang$core$String$dropRight, 1, inputUnits))));
+		var num = _elm_lang$core$String$toFloat(inputNum);
+		if (_elm_lang$core$Native_Utils.eq(inputSecondNum, '') && _elm_lang$core$Native_Utils.eq(inputSecondUnits, '')) {
+			var _p0 = num;
+			if (_p0.ctor === 'Ok') {
+				var _p1 = _p0._0;
+				return _elm_lang$core$Native_Utils.eq(unitType, 'g') ? _elm_lang$core$Result$Ok(
+					_user$project$Chelm$Grams(_p1 * unitMultiple)) : (_elm_lang$core$Native_Utils.eq(unitType, 'L') ? _elm_lang$core$Result$Ok(
+					_user$project$Chelm$Liters(_p1 * unitMultiple)) : (_elm_lang$core$Native_Utils.eq(unitType, 'M') ? _elm_lang$core$Result$Ok(
+					_user$project$Chelm$Molarity(_p1 * unitMultiple)) : _elm_lang$core$Result$Err('No valid unit type. I support g, L, or M.')));
+			} else {
+				return _elm_lang$core$Result$Err(
+					A2(_elm_lang$core$Basics_ops['++'], 'An error occurred: ', _p0._0));
+			}
+		} else {
+			if (!_elm_lang$core$Native_Utils.eq(inputSecondNum, '')) {
+				var _p2 = num;
+				if (_p2.ctor === 'Ok') {
+					var _p5 = _p2._0;
+					var unitMultiple2 = _user$project$SI$multiplierFromSI(
+						A2(
+							_elm_lang$core$Result$withDefault,
+							_user$project$SI$UnitUnit,
+							_user$project$SI$extractSIUnit(inputSecondUnits)));
+					var num2 = _elm_lang$core$String$toFloat(inputSecondNum);
+					var _p3 = num2;
+					if (_p3.ctor === 'Ok') {
+						var _p4 = _p3._0;
+						return _elm_lang$core$Native_Utils.eq(unitType, 'L') ? _elm_lang$core$Result$Ok(
+							_user$project$Chelm$Mols(
+								A2(_user$project$Main$chemistryLiterMolalToMols, _p5 * unitMultiple, _p4 * unitMultiple2))) : (_elm_lang$core$Native_Utils.eq(unitType, 'M') ? _elm_lang$core$Result$Ok(
+							_user$project$Chelm$Mols(
+								A2(_user$project$Main$chemistryLiterMolalToMols, _p4 * unitMultiple2, _p5 * unitMultiple))) : _elm_lang$core$Result$Err('Impossible unit reached interior chemistry parser'));
+					} else {
+						return _elm_lang$core$Result$Err(_p3._0);
+					}
+				} else {
+					return _elm_lang$core$Result$Err(_p2._0);
+				}
+			} else {
+				return _elm_lang$core$Result$Err('Molecular masses unimplemented.');
+			}
+		}
+	});
+var _user$project$Main$viewPastCommand = function (_p6) {
+	var _p7 = _p6;
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
@@ -8269,7 +8329,7 @@ var _user$project$Main$viewPastCommand = function (_p0) {
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text(
-						A2(_elm_lang$core$Basics_ops['++'], '> ', _p1._0))
+						A2(_elm_lang$core$Basics_ops['++'], '> ', _p7._0))
 					])),
 				A2(
 				_elm_lang$html$Html$p,
@@ -8277,7 +8337,7 @@ var _user$project$Main$viewPastCommand = function (_p0) {
 					[]),
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html$text(_p1._1)
+						_elm_lang$html$Html$text(_p7._1)
 					]))
 			]));
 };
@@ -8287,53 +8347,158 @@ var _user$project$Main$viewPastCommands = function (model) {
 var _user$project$Main$computeCommand = function (model) {
 	return _elm_lang$core$Native_Utils.eq(
 		'TABLE',
-		_elm_lang$core$String$toUpper(model.input)) ? {
+		_elm_lang$core$String$toUpper(model.inputNum)) ? {
 		ctor: '_Tuple2',
-		_0: model.input,
+		_0: A2(_elm_lang$core$Basics_ops['++'], model.inputNum, model.inputUnits),
 		_1: _elm_lang$core$Basics$toString(_user$project$PeriodicTable$periodicTable)
 	} : (A2(
 		_elm_lang$core$Regex$contains,
-		_elm_lang$core$Regex$regex('\\d+.\\d*'),
-		model.input) ? {
+		_elm_lang$core$Regex$regex('\\d+.?\\d*'),
+		model.inputNum) ? ((!_elm_lang$core$Native_Utils.eq(model.inputSecondNum, '')) ? {
 		ctor: '_Tuple2',
-		_0: model.input,
-		_1: _user$project$Main$chemistry(model.input)
-	} : {ctor: '_Tuple2', _0: model.input, _1: 'Most command parsing not yet implemented.'});
+		_0: A2(
+			_elm_lang$core$Basics_ops['++'],
+			model.inputNum,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				model.inputUnits,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					' of ',
+					A2(_elm_lang$core$Basics_ops['++'], model.inputSecondNum, model.inputSecondUnits)))),
+		_1: _elm_lang$core$Basics$toString(
+			A4(_user$project$Main$chemistry, model.inputNum, model.inputUnits, model.inputSecondNum, model.inputSecondUnits))
+	} : {
+		ctor: '_Tuple2',
+		_0: A2(
+			_elm_lang$core$Basics_ops['++'],
+			'Weird shape:',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				model.inputNum,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					model.inputUnits,
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						' of ',
+						A2(_elm_lang$core$Basics_ops['++'], model.inputSecondNum, model.inputSecondUnits))))),
+		_1: _elm_lang$core$Basics$toString(
+			A4(_user$project$Main$chemistry, model.inputNum, model.inputUnits, model.inputSecondNum, model.inputSecondUnits))
+	}) : {
+		ctor: '_Tuple2',
+		_0: A2(_elm_lang$core$Basics_ops['++'], model.inputNum, model.inputUnits),
+		_1: 'Most command parsing not yet implemented.'
+	});
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p2 = msg;
-		if (_p2.ctor === 'InputChanged') {
-			return _elm_lang$core$Native_Utils.update(
-				model,
-				{input: _p2._0});
-		} else {
-			return _elm_lang$core$Native_Utils.update(
-				model,
-				{
-					input: '',
-					results: A2(
-						_elm_lang$core$Basics_ops['++'],
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_user$project$Main$computeCommand(model)
-							]),
-						model.results)
-				});
+		var _p8 = msg;
+		switch (_p8.ctor) {
+			case 'InputNumChanged':
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{inputNum: _p8._0});
+			case 'InputUnitsChanged':
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{inputUnits: _p8._0});
+			case 'InputSecondNumChanged':
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{inputSecondNum: _p8._0});
+			case 'InputSecondUnitsChanged':
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{inputSecondUnits: _p8._0});
+			default:
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						inputNum: '',
+						inputUnits: '',
+						inputSecondNum: '',
+						inputSecondUnits: '',
+						results: A2(
+							_elm_lang$core$Basics_ops['++'],
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_user$project$Main$computeCommand(model)
+								]),
+							model.results)
+					});
 		}
 	});
 var _user$project$Main$model = {
-	input: '',
+	inputNum: '',
+	inputUnits: '',
+	inputSecondNum: '',
+	inputSecondUnits: '',
 	results: _elm_lang$core$Native_List.fromArray(
 		[])
 };
-var _user$project$Main$Model = F2(
-	function (a, b) {
-		return {input: a, results: b};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {inputNum: a, inputUnits: b, inputSecondNum: c, inputSecondUnits: d, results: e};
 	});
 var _user$project$Main$RunCommand = {ctor: 'RunCommand'};
-var _user$project$Main$InputChanged = function (a) {
-	return {ctor: 'InputChanged', _0: a};
+var _user$project$Main$InputSecondUnitsChanged = function (a) {
+	return {ctor: 'InputSecondUnitsChanged', _0: a};
+};
+var _user$project$Main$displayMoleculeBox = _elm_lang$core$Native_List.fromArray(
+	[
+		_elm_lang$html$Html$text(' of '),
+		A2(
+		_elm_lang$html$Html$input,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$type$('text'),
+				_elm_lang$html$Html_Attributes$placeholder('Molecule'),
+				_elm_lang$html$Html_Events$onInput(_user$project$Main$InputSecondUnitsChanged)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[]))
+	]);
+var _user$project$Main$InputSecondNumChanged = function (a) {
+	return {ctor: 'InputSecondNumChanged', _0: a};
+};
+var _user$project$Main$displaySecondNumBox = function (requiredUnit) {
+	return _elm_lang$core$Native_List.fromArray(
+		[
+			_elm_lang$html$Html$text(' of '),
+			A2(
+			_elm_lang$html$Html$input,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$type$('text'),
+					_elm_lang$html$Html_Attributes$placeholder('Value 2'),
+					_elm_lang$html$Html_Events$onInput(_user$project$Main$InputSecondNumChanged)
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[])),
+			A2(
+			_elm_lang$html$Html$input,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$type$('text'),
+					_elm_lang$html$Html_Attributes$placeholder('Units 2 (Just the SI part)'),
+					_elm_lang$html$Html_Events$onInput(_user$project$Main$InputSecondUnitsChanged)
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[])),
+			_elm_lang$html$Html$text(requiredUnit)
+		]);
+};
+var _user$project$Main$viewSecondNumBox = function (units) {
+	var unit = A2(_elm_lang$core$String$right, 1, units);
+	return _elm_lang$core$Native_Utils.eq(unit, 'L') ? _user$project$Main$displaySecondNumBox('M') : (_elm_lang$core$Native_Utils.eq(unit, 'M') ? _user$project$Main$displaySecondNumBox('L') : (_elm_lang$core$Native_Utils.eq(unit, 'g') ? _user$project$Main$displayMoleculeBox : _elm_lang$core$Native_List.fromArray(
+		[])));
+};
+var _user$project$Main$InputUnitsChanged = function (a) {
+	return {ctor: 'InputUnitsChanged', _0: a};
+};
+var _user$project$Main$InputNumChanged = function (a) {
+	return {ctor: 'InputNumChanged', _0: a};
 };
 var _user$project$Main$view = function (model) {
 	return A2(
@@ -8353,12 +8518,28 @@ var _user$project$Main$view = function (model) {
 						_elm_lang$core$Native_List.fromArray(
 							[
 								_elm_lang$html$Html_Attributes$type$('text'),
-								_elm_lang$html$Html_Attributes$placeholder('Statement'),
-								_elm_lang$html$Html_Attributes$value(model.input),
-								_elm_lang$html$Html_Events$onInput(_user$project$Main$InputChanged)
+								_elm_lang$html$Html_Attributes$placeholder('Number'),
+								_elm_lang$html$Html_Attributes$value(model.inputNum),
+								_elm_lang$html$Html_Events$onInput(_user$project$Main$InputNumChanged)
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[])),
+						A2(
+						_elm_lang$html$Html$input,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$type$('text'),
+								_elm_lang$html$Html_Attributes$placeholder('Units'),
+								_elm_lang$html$Html_Attributes$value(model.inputUnits),
+								_elm_lang$html$Html_Events$onInput(_user$project$Main$InputUnitsChanged)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[])),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_user$project$Main$viewSecondNumBox(model.inputUnits)),
 						A2(
 						_elm_lang$html$Html$button,
 						_elm_lang$core$Native_List.fromArray(

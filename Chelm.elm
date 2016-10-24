@@ -13,18 +13,21 @@ type Quantity
     = Grams Float
     | Liters Float
     | Molarity Float
+    | Mols Float
 
 numberRegString : String
 numberRegString = "\\d+\\.?\\d*"
+siRegString : String
+siRegString = "[A-z]{0,2}"
 
 numberRegex : Regex.Regex
 numberRegex = Regex.regex numberRegString
 gramRegex : Regex.Regex
-gramRegex = Regex.regex (numberRegString++"[Mkmnpf]?g")
+gramRegex = Regex.regex (numberRegString++siRegString++"g")
 literRegex : Regex.Regex
-literRegex = Regex.regex (numberRegString++"[Mkmnpf]?L")
+literRegex = Regex.regex (numberRegString++siRegString++"L")
 molarityRegex : Regex.Regex
-molarityRegex = Regex.regex (numberRegString++"[Mkmnpf]?M")
+molarityRegex = Regex.regex (numberRegString++siRegString++"M")
 
 decodeQuantity : String -> Result String Quantity
 decodeQuantity word =
