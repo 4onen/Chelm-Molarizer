@@ -51,7 +51,7 @@ computeCommand model =
     if "TABLE" == (String.toUpper model.input) then
         (model.input, toString PeriodicTable.periodicTable)
     else if Regex.contains (Regex.regex "\\d+.\\d*") model.input then
-        (model.input, {-parseInputChemistry model.input)-} "")
+        (model.input, chemistry model.input)
     else
         (model.input, "Most command parsing not yet implemented.")
 
@@ -78,3 +78,13 @@ viewPastCommand (input, output) =
         [ p [] [ text ("> " ++ input) ]
         , p [] [ text output ]
         ]
+
+
+
+-- CHEMISTRY
+chemistry : String -> String
+chemistry input = 
+    let
+        word = Maybe.withDefault "A horrid failure" (List.head (String.split " " input))
+    in 
+        toString (Chelm.decodeQuantity word)

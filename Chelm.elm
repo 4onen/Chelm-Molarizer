@@ -13,7 +13,6 @@ type Quantity
     = Grams Float
     | Liters Float
     | Molarity Float
-    | Molecule (List Atom)
 
 numberRegString : String
 numberRegString = "\\d+\\.?\\d*"
@@ -26,13 +25,6 @@ literRegex : Regex.Regex
 literRegex = Regex.regex (numberRegString++"[Mkmnpf]?L")
 molarityRegex : Regex.Regex
 molarityRegex = Regex.regex (numberRegString++"[Mkmnpf]?M")
-
-molarizeInputChemistry : String -> String
-molarizeInputChemistry input =
-    let 
-        equation = List.map decodeQuantity (String.words input)
-    in
-        toString equation -- Not final behavior
 
 decodeQuantity : String -> Result String Quantity
 decodeQuantity word =
@@ -47,33 +39,62 @@ decodeQuantity word =
 
 decodeGrams : String -> Result String Quantity
 decodeGrams word = 
-    let
-        givenVal = extractNumber word
-        multipleSI = 1 -- Implement SI units
-    in
-        Grams (givenVal*multipleSI)
+    case extractQuant word of
+        Result.Ok qnt ->
+            Result.Ok (Grams qnt)
+        Result.Err error ->
+            Result.Err error
 
 
 decodeLiters : String -> Result String Quantity
 decodeLiters word = 
-    Result.Err "unimplemented"
+    case extractQuant word of
+        Result.Ok qnt ->
+            Result.Ok (Liters qnt)
+        Result.Err error ->
+            Result.Err error
 
 decodeMolals : String -> Result String Quantity
 decodeMolals word =
-    Result.Err "unimplemented"
+    case extractQuant word of
+        Result.Ok qnt ->
+            Result.Ok (Molarity qnt)
+        Result.Err error ->
+            Result.Err error
 
-extractNumber : String -> Result String Float
-extractNumber word =
+extractQuant : String -> Result String Float
+extractQuant word =
     let
-        numberString = List.head (Regex.find (Regex.AtMost 1) numberRegex word)
+        numberMatch = List.head (Regex.find (Regex.AtMost 1) (Regex.regex "(\\d+\\.?\\d*)([A-z]*)([Mgm])") word)
+        numberString = 
+            case numberMatch of
+                Maybe.Just match ->
+                    List.head match.submatches
+                Maybe.Nothing ->
+                    Maybe.Nothing
+        siMult =
+            case numberMatch of
+                Maybe.Just match ->
+                    case List.head (Maybe.withDefault [] (List.tail match.submatches))  of
+                        Maybe.Just si ->
+                            SI.multiplierFromSI (Result.withDefault SI.UnitUnit (SI.extractSIUnit (Maybe.withDefault "" si)))
+                        Maybe.Nothing ->
+                            1
+                Maybe.Nothing ->
+                    1
     in
         case numberString of
             Maybe.Just match ->
-                String.toFloat match.match
+                case (String.toFloat (Maybe.withDefault "" match)) of
+                    Result.Ok number ->
+                        Result.Ok (number*siMult)
+                    Result.Err error ->
+                        Result.Err error
             Maybe.Nothing ->
                 Result.Err "No number match found!"
 
-extractSI : String -> Char
+
 
 decodeMolecule : String -> Result String Quantity
-    Result.Err "https://stackoverflow.com/questions/9957939/chemical-formula-parser-c"
+decodeMolecule word =
+    Result.Err "[A-Z][a-z]?\\d*|\\((?:[^()]*(?:\\(.*\\))?[^()]*)+\\)\\d+"
