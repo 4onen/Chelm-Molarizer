@@ -78,7 +78,7 @@ periodicTableString =
     """{
   "Hydrogen": {
     "appearance": "colorless gas",
-    "atomic_mass": 1.008,
+    "atomic_mass": 1.00794,
     "boil": 20.271,
     "category": "diatomic nonmetal",
     "color": "colorless",
@@ -120,7 +120,7 @@ periodicTableString =
   },
   "Lithium": {
     "appearance": "silvery-white",
-    "atomic_mass": 6.94,
+    "atomic_mass": 6.941,
     "boil": 1603,
     "category": "alkali metal",
     "color": null,
@@ -162,7 +162,7 @@ periodicTableString =
   },
   "Boron": {
     "appearance": "black-brown",
-    "atomic_mass": 10.81,
+    "atomic_mass": 10.811,
     "boil": 4200,
     "category": "metalloid",
     "color": null,
@@ -183,7 +183,7 @@ periodicTableString =
   },
   "Carbon": {
     "appearance": null,
-    "atomic_mass": 12.011,
+    "atomic_mass": 12.0107,
     "boil": null,
     "category": "polyatomic nonmetal",
     "color": null,
@@ -204,7 +204,7 @@ periodicTableString =
   },
   "Nitrogen": {
     "appearance": "colorless gas, liquid or solid",
-    "atomic_mass": 14.007,
+    "atomic_mass": 14.0067,
     "boil": 77.355,
     "category": "diatomic nonmetal",
     "color": null,
@@ -225,7 +225,7 @@ periodicTableString =
   },
   "Oxygen": {
     "appearance": null,
-    "atomic_mass": 15.999,
+    "atomic_mass": 15.9994,
     "boil": 90.188,
     "category": "diatomic nonmetal",
     "color": null,
@@ -351,7 +351,7 @@ periodicTableString =
   },
   "Silicon": {
     "appearance": "crystalline, reflective with bluish-tinged faces",
-    "atomic_mass": 28.085,
+    "atomic_mass": 28.0855,
     "boil": 3538,
     "category": "metalloid",
     "color": null,
@@ -393,7 +393,7 @@ periodicTableString =
   },
   "Sulfur": {
     "appearance": "lemon yellow sintered microcrystals",
-    "atomic_mass": 32.06,
+    "atomic_mass": 32.065,
     "boil": 717.8,
     "category": "polyatomic nonmetal",
     "color": null,
@@ -414,7 +414,7 @@ periodicTableString =
   },
   "Chlorine": {
     "appearance": "pale yellow-green gas",
-    "atomic_mass": 35.45,
+    "atomic_mass": 35.453,
     "boil": 239.11,
     "category": "diatomic nonmetal",
     "color": null,
@@ -1758,7 +1758,7 @@ periodicTableString =
   },
   "Thallium": {
     "appearance": "silvery white",
-    "atomic_mass": 204.38,
+    "atomic_mass": 204.3833,
     "boil": 1746,
     "category": "post-transition metal",
     "color": null,
